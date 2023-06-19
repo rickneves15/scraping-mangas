@@ -131,17 +131,17 @@ class MangaLivreService implements Service {
     return READER_TOKEN
   }
 
-  saveImage(
+  async saveImage(
     folderName: string,
     nameImage: number | string,
     imageUrl: string,
-  ): void {
+  ): Promise<void> {
     fs.mkdirSync(folderName, { recursive: true })
     const fileExtension = imageUrl.match(/\.([^.?#]+)(\?|$)/)?.[1]
     const fileName = `${nameImage}.${fileExtension}`
     const file = fs.createWriteStream(path.join(folderName, fileName))
 
-    https
+    await https
       .get(imageUrl, (response) => {
         response.pipe(file)
         file.on('finish', () => {
@@ -156,16 +156,16 @@ class MangaLivreService implements Service {
       })
   }
 
-  compressFolder(folderName: string): void {
-    const output = fs.createWriteStream(`${folderName}.cbr`)
+  async compressFolder(folderName: string): Promise<void> {
+    const output = fs.createWriteStream(`${folderName}.cbz`)
     const archive = archiver('zip')
 
     output.on('close', () => {
       fs.rmSync(folderName, { recursive: true, force: true })
     })
 
-    archive.pipe(output)
-    archive.directory(folderName, false)
+    await archive.pipe(output)
+    await archive.directory(folderName, false)
     archive.finalize()
   }
 
@@ -191,9 +191,13 @@ class MangaLivreService implements Service {
         )
 
         for (let index = 0; index < urlImagesChapter.length; index++) {
-          this.saveImage(folderName, index, urlImagesChapter[index].legacy)
+          await this.saveImage(
+            folderName,
+            index,
+            urlImagesChapter[index].legacy,
+          )
         }
-        this.compressFolder(folderName)
+        await this.compressFolder(folderName)
       }
 
       console.info(`Downloaded Chapter ${linksChapter.number}`)
