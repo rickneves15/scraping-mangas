@@ -164,7 +164,9 @@ class MangaLivreService implements Service {
 
   async compressFolder(folderName: string): Promise<void> {
     const output = fs.createWriteStream(`${folderName}.cbz`)
-    const archive = archiver('zip')
+    const archive = archiver('zip', {
+      zlib: { level: 9 },
+    })
 
     output.on('close', () => {
       fs.rmSync(folderName, { recursive: true, force: true })
@@ -207,13 +209,15 @@ class MangaLivreService implements Service {
         )
 
         if (urlImagesChapter) {
-          for (let index = 0; index < urlImagesChapter.length; index++) {
-            await this.saveImage(
-              folderName,
-              index,
-              urlImagesChapter[index].legacy,
-            )
-          }
+          setTimeout(async () => {
+            for (let index = 0; index < urlImagesChapter.length; index++) {
+              await this.saveImage(
+                folderName,
+                index,
+                urlImagesChapter[index].legacy,
+              )
+            }
+          }, 300)
           await this.compressFolder(folderName)
         }
       }
