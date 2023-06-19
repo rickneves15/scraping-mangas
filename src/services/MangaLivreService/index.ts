@@ -12,6 +12,7 @@ import {
 import fs from 'fs'
 import path from 'path'
 import https from 'https'
+import archiver from 'archiver'
 import {
   MLSerieChapter,
   MLUrlImagesChapter,
@@ -155,6 +156,19 @@ class MangaLivreService implements Service {
       })
   }
 
+  compressFolder(folderName: string): void {
+    const output = fs.createWriteStream(`${folderName}.cbr`)
+    const archive = archiver('zip')
+
+    output.on('close', () => {
+      fs.rmSync(folderName, { recursive: true, force: true })
+    })
+
+    archive.pipe(output)
+    archive.directory(folderName, false)
+    archive.finalize()
+  }
+
   async download(
     serie: Serie,
     listChapters: MLSerieChapter[],
@@ -179,6 +193,7 @@ class MangaLivreService implements Service {
         for (let index = 0; index < urlImagesChapter.length; index++) {
           this.saveImage(folderName, index, urlImagesChapter[index].legacy)
         }
+        this.compressFolder(folderName)
       }
 
       console.info(`Downloaded Chapter ${linksChapter.number}`)

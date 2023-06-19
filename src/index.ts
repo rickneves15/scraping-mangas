@@ -1,3 +1,4 @@
+/* eslint-disable n/no-path-concat */
 import dotenv from 'dotenv'
 import SourceManager from './SourceManager'
 import { searchPrompt, SearchPromptAnswers } from './prompts/search'
