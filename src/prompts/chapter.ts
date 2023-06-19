@@ -1,25 +1,23 @@
 import inquirer, { QuestionCollection } from 'inquirer'
 
 export type ChapterPromptAnswers = {
-  chapterSelected: number[] | string[]
+  chapterFrom: number
+  chapterTo: number
 }
 
 const chapterPrompt = (chapterList: any): Promise<ChapterPromptAnswers> => {
   const promptQuestions: QuestionCollection<ChapterPromptAnswers> = [
     {
       type: 'list',
-      name: 'chapterSelected',
+      name: 'chapterFrom',
       message: 'Select a chapter to download from:',
-      suggestOnly: true,
-      emptyText: 'Nothing found!',
-      pageSize: 4,
       choices: chapterList,
-      filter: (input: any) => {
-        const filteredChoices = chapterList.filter((chapter: any) =>
-          chapter.toString().includes(input),
-        )
-        return filteredChoices
-      },
+    },
+    {
+      type: 'list',
+      name: 'chapterTo',
+      message: 'Select a chapter to download to:',
+      choices: chapterList,
     },
   ]
 

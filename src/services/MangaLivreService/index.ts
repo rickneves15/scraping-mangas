@@ -62,18 +62,24 @@ class MangaLivreService implements Service {
     return response.chapters
   }
 
-  async getUrlImagesChapter(url: string): Promise<MLUrlImagesChapter[]> {
-    const response = await getRequest({
-      url,
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'x-requested-with': 'XMLHttpRequest',
-      },
-    })
+  async getUrlImagesChapter(
+    url: string,
+  ): Promise<MLUrlImagesChapter[] | undefined> {
+    try {
+      const response = await getRequest({
+        url,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'x-requested-with': 'XMLHttpRequest',
+        },
+      })
 
-    return response.images
+      return response.images
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   async getChapters(serieId: number, url: string): Promise<MLSerieChapter[]> {
@@ -172,14 +178,24 @@ class MangaLivreService implements Service {
   async download(
     serie: Serie,
     listChapters: MLSerieChapter[],
-    chapterSelected: any,
+    chapterFrom: number,
+    chapterTo: number,
   ) {
     if (!listChapters) {
       console.info('Serie not have chapters.')
       return
     }
 
-    for (const linksChapter of listChapters) {
+    for (const linksChapter of listChapters.reverse()) {
+      if (
+        !(
+          Number(linksChapter.number) >= Number(chapterFrom) &&
+          Number(linksChapter.number) <= Number(chapterTo)
+        )
+      ) {
+        continue
+      }
+
       const folderName = `${process.env.BASE_PATH}/${serie.name}/${linksChapter.number}`
       const serieChapterId =
         // @ts-ignore
@@ -190,22 +206,19 @@ class MangaLivreService implements Service {
           `${BASE_IMAGES_CHAPTER}/${serieChapterId}.json`,
         )
 
-        for (let index = 0; index < urlImagesChapter.length; index++) {
-          await this.saveImage(
-            folderName,
-            index,
-            urlImagesChapter[index].legacy,
-          )
+        if (urlImagesChapter) {
+          for (let index = 0; index < urlImagesChapter.length; index++) {
+            await this.saveImage(
+              folderName,
+              index,
+              urlImagesChapter[index].legacy,
+            )
+          }
+          await this.compressFolder(folderName)
         }
-        await this.compressFolder(folderName)
       }
 
       console.info(`Downloaded Chapter ${linksChapter.number}`)
-      if (chapterSelected) {
-        if (Number(linksChapter.number) <= Number(chapterSelected)) {
-          break
-        }
-      }
     }
     console.info(
       `________________________________________________________________`,

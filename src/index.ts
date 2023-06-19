@@ -3,8 +3,12 @@ import dotenv from 'dotenv'
 import SourceManager from './SourceManager'
 import { searchPrompt, SearchPromptAnswers } from './prompts/search'
 import { seriePrompt, SeriePromptAnswers } from './prompts/serie'
-import { chapterPrompt } from './prompts/chapter'
+import { chapterPrompt, ChapterPromptAnswers } from './prompts/chapter'
 import { Serie } from './utils/types/models'
+import {
+  chapterRangePrompt,
+  chapterRangePromptAnswers,
+} from './prompts/chapterRange'
 
 dotenv.config()
 
@@ -26,10 +30,24 @@ searchPrompt()
       if (serie) {
         sourceManager.setSerie(serie)
         const chapters = await sourceManager.chapters()
+        chapterRangePrompt().then(
+          async (answers: chapterRangePromptAnswers) => {
+            chapters.sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+            const chapterFrom = Number(chapters[0])
+            const chapterTo = Number(chapters[chapters.length - 1])
 
-        chapterPrompt(chapters.sort((a, b) => a - b)).then(
-          async (answers: any) => {
-            await sourceManager.download(answers.chapterSelected)
+            if (answers.chapterRange) {
+              await sourceManager.download(chapterFrom, chapterTo)
+            } else {
+              chapterPrompt(chapters).then(
+                async (answers: ChapterPromptAnswers) => {
+                  await sourceManager.download(
+                    Number(answers.chapterFrom),
+                    Number(answers.chapterTo),
+                  )
+                },
+              )
+            }
           },
         )
       }
