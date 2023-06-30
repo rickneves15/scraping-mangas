@@ -217,15 +217,13 @@ class MangaLivreService implements Service {
         )
 
         if (urlImagesChapter) {
-          setTimeout(async () => {
-            for (let index = 0; index < urlImagesChapter.length; index++) {
-              await this.saveImage(
-                folderName,
-                index,
-                urlImagesChapter[index].legacy,
-              )
-            }
-          }, 300)
+          for (let index = 0; index < urlImagesChapter.length; index++) {
+            await this.saveImage(
+              folderName,
+              index,
+              urlImagesChapter[index].legacy,
+            )
+          }
           await this.compressFolder(folderName)
         }
       }
