@@ -17,6 +17,7 @@ import {
   MLSerieChapter,
   MLUrlImagesChapter,
 } from '../../utils/types/sources/MangaLivre/type'
+import { CHAPTERS_MODE } from '../../prompts/chapterMode'
 
 class MangaLivreService implements Service {
   async getSeries(search: string): Promise<Serie[] | any> {
@@ -179,6 +180,7 @@ class MangaLivreService implements Service {
 
   async download(
     serie: Serie,
+    chapterMode: number,
     listChapters: MLSerieChapter[],
     chapterFrom: number,
     chapterTo: number,
@@ -189,12 +191,18 @@ class MangaLivreService implements Service {
     }
 
     for (const linksChapter of listChapters.reverse()) {
-      if (
-        !(
-          Number(linksChapter.number) >= Number(chapterFrom) &&
-          Number(linksChapter.number) <= Number(chapterTo)
-        )
-      ) {
+      if (CHAPTERS_MODE.IN_BETWEEN === chapterMode) {
+        if (
+          !(
+            Number(linksChapter.number) >= Number(chapterFrom) &&
+            Number(linksChapter.number) <= Number(chapterTo)
+          )
+        ) {
+          continue
+        }
+      }
+
+      if (!(Number(linksChapter.number) >= Number(chapterFrom))) {
         continue
       }
 

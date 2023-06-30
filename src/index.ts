@@ -6,9 +6,14 @@ import { seriePrompt, SeriePromptAnswers } from './prompts/serie'
 import { chapterPrompt, ChapterPromptAnswers } from './prompts/chapter'
 import { Serie } from './utils/types/models'
 import {
-  chapterRangePrompt,
-  chapterRangePromptAnswers,
-} from './prompts/chapterRange'
+  chapterModePrompt,
+  chapterModePromptAnswers,
+  CHAPTERS_MODE,
+} from './prompts/chapterMode'
+import {
+  chapterPromptInBetween,
+  chapterPromptInBetweenAnswers,
+} from './prompts/chapterInBetween'
 
 dotenv.config()
 
@@ -30,26 +35,57 @@ searchPrompt()
       if (serie) {
         sourceManager.setSerie(serie)
         const chapters = await sourceManager.chapters()
-        chapterRangePrompt().then(
-          async (answers: chapterRangePromptAnswers) => {
-            chapters.sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-            const chapterFrom = Number(chapters[0])
-            const chapterTo = Number(chapters[chapters.length - 1])
+        chapterModePrompt().then(async (answers: chapterModePromptAnswers) => {
+          chapters.sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
 
-            if (answers.chapterRange) {
-              await sourceManager.download(chapterFrom, chapterTo)
-            } else {
+          const chapterFrom = Number(chapters[0])
+          const chapterTo = Number(chapters[chapters.length - 1])
+
+          const chapterMode = answers.chapterMode
+
+          switch (chapterMode) {
+            case CHAPTERS_MODE.ALL:
+              await sourceManager.download(chapterMode, chapterFrom, chapterTo)
+              break
+            case CHAPTERS_MODE.FROM:
+              chapterPromptInBetween(chapters).then(
+                async (answers: chapterPromptInBetweenAnswers) => {
+                  sourceManager.download(
+                    chapterMode,
+                    Number(answers.chapterFrom),
+                  )
+                },
+              )
+              break
+            case CHAPTERS_MODE.IN_BETWEEN:
               chapterPrompt(chapters).then(
                 async (answers: ChapterPromptAnswers) => {
                   await sourceManager.download(
+                    chapterMode,
                     Number(answers.chapterFrom),
                     Number(answers.chapterTo),
                   )
                 },
               )
-            }
-          },
-        )
+              break
+
+            default:
+              break
+          }
+          //
+          // if (answers.chapterMode) {
+          // await sourceManager.download(chapterFrom, chapterTo)
+          // } else {
+          //   chapterPrompt(chapters).then(
+          //     async (answers: ChapterPromptAnswers) => {
+          //       await sourceManager.download(
+          //         Number(answers.chapterFrom),
+          //         Number(answers.chapterTo),
+          //       )
+          //     },
+          //   )
+          // }
+        })
       }
     })
   })

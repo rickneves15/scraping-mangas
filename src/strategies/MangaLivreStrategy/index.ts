@@ -19,11 +19,17 @@ class MangaLivreStrategy implements SourceStrategy {
     return chaptersList
   }
 
-  async handleDownload(serie: Serie, chapterFrom: any, chapterTo: any) {
+  async handleDownload(
+    serie: Serie,
+    chapterMode: number,
+    chapterFrom: any,
+    chapterTo?: any,
+  ) {
     const chapters = await this.service.getChapters(serie.id, serie.link)
 
     await this.service.download(
       serie,
+      chapterMode,
       chapters.sort((a: any, b: any) => b.number - a.number),
       chapterFrom,
       chapterTo,

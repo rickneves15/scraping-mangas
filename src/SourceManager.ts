@@ -1,3 +1,4 @@
+import { CHAPTERS_MODE } from './prompts/chapterMode'
 import MangaLivreStrategy from './strategies/MangaLivreStrategy'
 import { Serie } from './utils/types/models'
 import { SourceStrategy } from './utils/types/strategies'
@@ -66,19 +67,21 @@ class SourceManager {
     return chaptersList.reverse()
   }
 
-  download(chapterFrom: number, chapterTo: number) {
+  download(chapterMode: number, chapterFrom: number, chapterTo?: number) {
     const serie: Serie | null = this.getSerie()
 
     if (serie) {
       const strategy = this.getStrategy()
 
-      if (chapterFrom > chapterTo) {
-        console.log('Chapter from must not be greater than chapter to')
-        return
+      if (CHAPTERS_MODE.IN_BETWEEN === chapterMode) {
+        if (chapterFrom > chapterTo!) {
+          console.log('Chapter from must not be greater than chapter to')
+          return
+        }
       }
 
       if (strategy) {
-        strategy.handleDownload(serie, chapterFrom, chapterTo)
+        strategy.handleDownload(serie, chapterMode, chapterFrom, chapterTo)
       }
     }
   }
