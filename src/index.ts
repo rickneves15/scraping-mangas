@@ -72,19 +72,6 @@ searchPrompt()
             default:
               break
           }
-          //
-          // if (answers.chapterMode) {
-          // await sourceManager.download(chapterFrom, chapterTo)
-          // } else {
-          //   chapterPrompt(chapters).then(
-          //     async (answers: ChapterPromptAnswers) => {
-          //       await sourceManager.download(
-          //         Number(answers.chapterFrom),
-          //         Number(answers.chapterTo),
-          //       )
-          //     },
-          //   )
-          // }
         })
       }
     })
