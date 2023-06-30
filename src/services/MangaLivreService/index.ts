@@ -91,7 +91,10 @@ class MangaLivreService implements Service {
       const paginationUrl = `${BASE_CHAPTERS_LIST}?id_serie=${serieId}&page=${page}`
 
       const linksChapters = await this.getLinkChapters(paginationUrl)
-      chapters = [...linksChapters, ...chapters]
+
+      if (linksChapters) {
+        chapters = [...linksChapters, ...chapters]
+      }
     }
 
     return chapters
